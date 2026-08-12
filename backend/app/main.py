@@ -8,11 +8,40 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes.health import router as health_router
 from app.api.routes.upload import router as upload_router
 from app.api.routes.metrics import router as metrics_router
-from app.core.config import get_settings
 
+from app.core.config import get_settings
+from app.core.database import Base, engine
+
+# Import all ORM models so SQLAlchemy registers their tables
+# with Base.metadata before create_all() runs.
+from app.models.advisor import Advisor
+from app.models.snapshot import AdvisorMetricSnapshot
+from app.models.upload import ImportBatch
+
+
+# ============================================================
+# SETTINGS
+# ============================================================
 
 settings = get_settings()
 
+
+# ============================================================
+# DATABASE INITIALIZATION
+# ============================================================
+
+# Create any missing database tables.
+#
+# This is important for Render because the production SQLite
+# database may start without the application's tables.
+#
+# Existing tables/data are not deleted by create_all().
+Base.metadata.create_all(bind=engine)
+
+
+# ============================================================
+# FASTAPI APPLICATION
+# ============================================================
 
 app = FastAPI(
     title="Service Advisor Performance Tracker API",
@@ -22,14 +51,6 @@ app = FastAPI(
 
 # ============================================================
 # CORS
-# ============================================================
-#
-# React frontend runs on localhost:5173.
-# FastAPI backend runs on 127.0.0.1:8000.
-#
-# The browser treats these as different origins, so the backend
-# must explicitly allow the frontend to make API requests.
-#
 # ============================================================
 
 app.add_middleware(
@@ -59,7 +80,7 @@ app.include_router(
 
 
 # ============================================================
-# ROOT
+# ROOT ENDPOINT
 # ============================================================
 
 @app.get("/")
