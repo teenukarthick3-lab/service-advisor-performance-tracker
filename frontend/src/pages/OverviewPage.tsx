@@ -7,7 +7,6 @@ import {
   type OverviewResponse,
 } from "../services/api";
 
-
 // ============================================================
 // TYPES
 // ============================================================
@@ -22,7 +21,6 @@ type OverviewState =
   | { status: "error" }
   | { status: "loaded"; data: OverviewResponse };
 
-
 // ============================================================
 // HELPERS
 // ============================================================
@@ -31,7 +29,6 @@ function formatNumber(value: number): string {
   return new Intl.NumberFormat("en-IN").format(value);
 }
 
-
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -39,7 +36,6 @@ function formatCurrency(value: number): string {
     maximumFractionDigits: 2,
   }).format(value);
 }
-
 
 function formatMonth(month: number): string {
   const months = [
@@ -60,7 +56,6 @@ function formatMonth(month: number): string {
   return months[month - 1] ?? "";
 }
 
-
 // ============================================================
 // KPI CARD
 // ============================================================
@@ -69,31 +64,54 @@ interface KpiCardProps {
   title: string;
   value: string;
   description?: string;
+  accent?: "red" | "dark" | "green";
 }
-
 
 function KpiCard({
   title,
   value,
   description,
+  accent = "red",
 }: KpiCardProps) {
+  const accentColor =
+    accent === "green"
+      ? "#059669"
+      : accent === "dark"
+        ? "#111827"
+        : "#eb0a1e";
+
   return (
     <div
       style={{
+        position: "relative",
+        overflow: "hidden",
         background: "#ffffff",
         border: "1px solid #e2e8f0",
-        borderRadius: "10px",
-        padding: "20px",
-        minHeight: "120px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+        borderRadius: "14px",
+        padding: "24px",
+        minHeight: "145px",
+        boxShadow: "0 5px 18px rgba(15,23,42,0.06)",
       }}
     >
       <div
         style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: "5px",
+          background: accentColor,
+        }}
+      />
+
+      <div
+        style={{
           fontSize: "13px",
           color: "#64748b",
-          marginBottom: "10px",
-          fontWeight: 500,
+          marginBottom: "12px",
+          fontWeight: 800,
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
         }}
       >
         {title}
@@ -101,10 +119,12 @@ function KpiCard({
 
       <div
         style={{
-          fontSize: "28px",
-          fontWeight: 700,
-          color: "#0f172a",
-          marginBottom: "6px",
+          fontSize: "32px",
+          lineHeight: 1.15,
+          fontWeight: 900,
+          color: "#111827",
+          marginBottom: "8px",
+          wordBreak: "break-word",
         }}
       >
         {value}
@@ -113,8 +133,9 @@ function KpiCard({
       {description && (
         <div
           style={{
-            fontSize: "12px",
+            fontSize: "13px",
             color: "#94a3b8",
+            fontWeight: 600,
           }}
         >
           {description}
@@ -124,26 +145,72 @@ function KpiCard({
   );
 }
 
+// ============================================================
+// SECTION HEADER
+// ============================================================
+
+function SectionHeader({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div style={{ marginBottom: "18px" }}>
+      <div
+        style={{
+          color: "#eb0a1e",
+          fontSize: "11px",
+          fontWeight: 900,
+          textTransform: "uppercase",
+          letterSpacing: "0.18em",
+          marginBottom: "5px",
+        }}
+      >
+        {eyebrow}
+      </div>
+
+      <h2
+        style={{
+          margin: 0,
+          color: "#111827",
+          fontSize: "24px",
+          fontWeight: 900,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        {title}
+      </h2>
+
+      <p
+        style={{
+          margin: "6px 0 0",
+          color: "#64748b",
+          fontSize: "14px",
+        }}
+      >
+        {description}
+      </p>
+    </div>
+  );
+}
 
 // ============================================================
 // OVERVIEW PAGE
 // ============================================================
 
 export function OverviewPage() {
-
   // ----------------------------------------------------------
   // Selected period
   // ----------------------------------------------------------
 
   const [year] = useState(2026);
 
-  // Your uploaded workbook currently contains:
-  // January -> June 2026
-  //
-  // We start with June because this is the latest month
-  // currently available in the database.
+  // Latest currently available workbook month.
   const [month, setMonth] = useState(6);
-
 
   // ----------------------------------------------------------
   // Health state
@@ -154,7 +221,6 @@ export function OverviewPage() {
       status: "loading",
     });
 
-
   // ----------------------------------------------------------
   // Overview state
   // ----------------------------------------------------------
@@ -164,13 +230,11 @@ export function OverviewPage() {
       status: "loading",
     });
 
-
   // ----------------------------------------------------------
   // Load backend health
   // ----------------------------------------------------------
 
   useEffect(() => {
-
     let cancelled = false;
 
     setHealthState({
@@ -180,7 +244,6 @@ export function OverviewPage() {
     api
       .getHealth()
       .then((data) => {
-
         if (cancelled) {
           return;
         }
@@ -191,7 +254,6 @@ export function OverviewPage() {
         });
       })
       .catch((error: unknown) => {
-
         if (cancelled) {
           return;
         }
@@ -210,16 +272,13 @@ export function OverviewPage() {
     return () => {
       cancelled = true;
     };
-
   }, []);
-
 
   // ----------------------------------------------------------
   // Load overview metrics
   // ----------------------------------------------------------
 
   useEffect(() => {
-
     let cancelled = false;
 
     setOverviewState({
@@ -229,7 +288,6 @@ export function OverviewPage() {
     api
       .getOverview(year, month)
       .then((data) => {
-
         if (cancelled) {
           return;
         }
@@ -240,7 +298,6 @@ export function OverviewPage() {
         });
       })
       .catch((error: unknown) => {
-
         if (cancelled) {
           return;
         }
@@ -259,9 +316,7 @@ export function OverviewPage() {
     return () => {
       cancelled = true;
     };
-
   }, [year, month]);
-
 
   // ==========================================================
   // RENDER
@@ -270,35 +325,83 @@ export function OverviewPage() {
   return (
     <div
       style={{
-        padding: "24px",
-        background: "#f8fafc",
-        minHeight: "100%",
+        maxWidth: "1600px",
+        margin: "0 auto",
       }}
     >
-
       {/* ======================================================
-          PAGE HEADER
+          HERO
           ====================================================== */}
 
-      <div
+      <section
         style={{
+          position: "relative",
+          overflow: "hidden",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          gap: "30px",
           marginBottom: "24px",
-          gap: "20px",
-          flexWrap: "wrap",
+          padding: "34px 38px",
+          borderRadius: "18px",
+          background:
+            "linear-gradient(135deg, #ffffff 0%, #f8fafc 65%, #fff1f2 100%)",
+          border: "1px solid #e2e8f0",
+          borderLeft: "7px solid #eb0a1e",
+          boxShadow:
+            "0 10px 30px rgba(15,23,42,0.07)",
         }}
       >
+        <div
+          style={{
+            position: "absolute",
+            right: "-80px",
+            top: "-100px",
+            width: "280px",
+            height: "280px",
+            borderRadius: "50%",
+            border: "35px solid rgba(235,10,30,0.05)",
+          }}
+        />
 
-        <div>
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div
+            style={{
+              display: "inline-block",
+              padding: "7px 13px",
+              marginBottom: "12px",
+              borderRadius: "5px",
+              background: "#eb0a1e",
+              color: "#ffffff",
+              fontSize: "12px",
+              fontWeight: 900,
+              letterSpacing: "0.2em",
+            }}
+          >
+            TOYOTA
+          </div>
+
+          <div
+            style={{
+              color: "#eb0a1e",
+              fontSize: "11px",
+              fontWeight: 900,
+              textTransform: "uppercase",
+              letterSpacing: "0.2em",
+              marginBottom: "5px",
+            }}
+          >
+            Service Performance Analytics
+          </div>
 
           <h1
             style={{
               margin: 0,
-              fontSize: "24px",
-              fontWeight: 700,
-              color: "#0f172a",
+              fontSize: "36px",
+              lineHeight: 1.15,
+              fontWeight: 950,
+              color: "#111827",
+              letterSpacing: "-0.03em",
             }}
           >
             Executive Overview
@@ -306,36 +409,43 @@ export function OverviewPage() {
 
           <p
             style={{
-              margin: "6px 0 0",
+              margin: "9px 0 0",
               color: "#64748b",
-              fontSize: "14px",
+              fontSize: "16px",
+              fontWeight: 500,
             }}
           >
             Service Advisor Performance Tracker
           </p>
-
         </div>
 
-
-        {/* Period selector */}
-
+        {/* Period Selector */}
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
+            position: "relative",
+            zIndex: 1,
+            minWidth: "220px",
+            padding: "18px",
+            borderRadius: "12px",
+            background: "#ffffff",
+            border: "1px solid #e5e7eb",
+            boxShadow:
+              "0 5px 18px rgba(15,23,42,0.06)",
           }}
         >
-
           <label
             htmlFor="month"
             style={{
-              fontSize: "14px",
-              color: "#475569",
-              fontWeight: 500,
+              display: "block",
+              fontSize: "11px",
+              fontWeight: 900,
+              textTransform: "uppercase",
+              letterSpacing: "0.12em",
+              color: "#9ca3af",
+              marginBottom: "8px",
             }}
           >
-            Period
+            Reporting Period
           </label>
 
           <select
@@ -345,98 +455,140 @@ export function OverviewPage() {
               setMonth(Number(event.target.value))
             }
             style={{
+              width: "100%",
+              height: "46px",
               border: "1px solid #cbd5e1",
-              borderRadius: "6px",
-              padding: "8px 12px",
+              borderRadius: "8px",
+              padding: "0 12px",
               background: "#ffffff",
-              color: "#0f172a",
+              color: "#111827",
+              fontSize: "15px",
+              fontWeight: 800,
               cursor: "pointer",
+              outline: "none",
             }}
           >
-
             <option value={1}>January 2026</option>
             <option value={2}>February 2026</option>
             <option value={3}>March 2026</option>
             <option value={4}>April 2026</option>
             <option value={5}>May 2026</option>
             <option value={6}>June 2026</option>
-
           </select>
-
         </div>
-
-      </div>
-
+      </section>
 
       {/* ======================================================
           BACKEND STATUS
           ====================================================== */}
 
-      <div
+      <section
         style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "20px",
+          flexWrap: "wrap",
           background: "#ffffff",
           border: "1px solid #e2e8f0",
-          borderRadius: "8px",
-          padding: "14px 16px",
-          marginBottom: "24px",
+          borderRadius: "12px",
+          padding: "16px 20px",
+          marginBottom: "28px",
+          boxShadow:
+            "0 3px 12px rgba(15,23,42,0.04)",
         }}
       >
+        <div>
+          <div
+            style={{
+              fontSize: "11px",
+              color: "#94a3b8",
+              fontWeight: 900,
+              textTransform: "uppercase",
+              letterSpacing: "0.12em",
+              marginBottom: "4px",
+            }}
+          >
+            System Status
+          </div>
 
-        <div
-          style={{
-            fontSize: "13px",
-            color: "#64748b",
-            marginBottom: "5px",
-          }}
-        >
-          Backend connection status
+          <div
+            style={{
+              fontSize: "15px",
+              color: "#334155",
+              fontWeight: 800,
+            }}
+          >
+            Backend connection
+          </div>
         </div>
-
 
         {healthState.status === "loading" && (
           <div
             style={{
               color: "#64748b",
               fontSize: "14px",
+              fontWeight: 700,
             }}
           >
             Checking API connection...
           </div>
         )}
 
-
         {healthState.status === "error" && (
           <div
             style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "9px",
               color: "#dc2626",
               fontSize: "14px",
+              fontWeight: 800,
             }}
           >
-            Couldn't reach the API. Is the backend running?
+            <span
+              style={{
+                width: "10px",
+                height: "10px",
+                borderRadius: "50%",
+                background: "#dc2626",
+              }}
+            />
+            Couldn't reach the API
           </div>
         )}
-
 
         {healthState.status === "loaded" && (
           <div
             style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
               color: "#059669",
               fontSize: "14px",
-              fontWeight: 500,
+              fontWeight: 800,
             }}
           >
+            <span
+              style={{
+                width: "11px",
+                height: "11px",
+                borderRadius: "50%",
+                background: "#10b981",
+                boxShadow:
+                  "0 0 0 4px rgba(16,185,129,0.12)",
+              }}
+            />
+
             Connected — API status:{" "}
             {healthState.data.status}
-            {", "}
-            DB connected:{" "}
+            {", DB connected: "}
             {String(
               healthState.data.database_connected,
             )}
           </div>
         )}
-
-      </div>
-
+      </section>
 
       {/* ======================================================
           LOADING
@@ -447,16 +599,17 @@ export function OverviewPage() {
           style={{
             background: "#ffffff",
             border: "1px solid #e2e8f0",
-            borderRadius: "10px",
-            padding: "40px",
+            borderRadius: "14px",
+            padding: "60px 30px",
             textAlign: "center",
             color: "#64748b",
+            fontSize: "16px",
+            fontWeight: 700,
           }}
         >
           Loading dashboard metrics...
         </div>
       )}
-
 
       {/* ======================================================
           ERROR
@@ -467,17 +620,20 @@ export function OverviewPage() {
           style={{
             background: "#ffffff",
             border: "1px solid #fecaca",
-            borderRadius: "10px",
-            padding: "30px",
+            borderLeft: "6px solid #dc2626",
+            borderRadius: "14px",
+            padding: "35px",
             textAlign: "center",
+            boxShadow:
+              "0 5px 18px rgba(15,23,42,0.05)",
           }}
         >
-
           <div
             style={{
+              fontSize: "20px",
               color: "#dc2626",
-              fontWeight: 600,
-              marginBottom: "8px",
+              fontWeight: 900,
+              marginBottom: "10px",
             }}
           >
             Unable to load dashboard metrics
@@ -487,14 +643,15 @@ export function OverviewPage() {
             style={{
               color: "#64748b",
               fontSize: "14px",
+              lineHeight: 1.6,
             }}
           >
-            Please make sure the FastAPI backend is running.
+            The dashboard is connected to the API, but
+            the selected period's metrics are currently
+            unavailable.
           </div>
-
         </div>
       )}
-
 
       {/* ======================================================
           DASHBOARD
@@ -502,182 +659,240 @@ export function OverviewPage() {
 
       {overviewState.status === "loaded" && (
         <>
+          {/* Period Heading */}
 
-          {/* Period title */}
-
-          <div
+          <section
             style={{
-              marginBottom: "14px",
-              fontSize: "16px",
-              fontWeight: 600,
-              color: "#334155",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "end",
+              gap: "20px",
+              flexWrap: "wrap",
+              marginBottom: "18px",
             }}
           >
-            {formatMonth(
-              overviewState.data.period.month,
-            )}{" "}
-            {overviewState.data.period.year}
-          </div>
+            <SectionHeader
+              eyebrow="Performance Snapshot"
+              title={`${formatMonth(
+                overviewState.data.period.month,
+              )} ${overviewState.data.period.year}`}
+              description="Executive-level service advisor performance indicators."
+            />
 
+            <div
+              style={{
+                padding: "9px 14px",
+                borderRadius: "20px",
+                background: "#fff1f2",
+                color: "#be123c",
+                fontSize: "12px",
+                fontWeight: 900,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
+              Monthly Snapshot
+            </div>
+          </section>
 
           {/* ==================================================
-              KPI GRID
+              CORE KPI GRID
               ================================================== */}
 
-          <div
+          <section
             style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(210px, 1fr))",
-              gap: "16px",
-              marginBottom: "24px",
+              marginBottom: "30px",
             }}
           >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(230px, 1fr))",
+                gap: "18px",
+              }}
+            >
+              <KpiCard
+                title="Active Advisors"
+                value={formatNumber(
+                  overviewState.data.active_advisors,
+                )}
+                description="Service advisors"
+                accent="dark"
+              />
 
-            <KpiCard
-              title="Active Advisors"
-              value={formatNumber(
-                overviewState.data.active_advisors,
-              )}
-              description="Service advisors"
-            />
+              <KpiCard
+                title="Total GUS"
+                value={formatNumber(
+                  overviewState.data.total_gus,
+                )}
+                description="General service vehicles"
+                accent="red"
+              />
 
+              <KpiCard
+                title="Total PM"
+                value={formatNumber(
+                  overviewState.data.total_pm,
+                )}
+                description="Preventive maintenance"
+                accent="red"
+              />
 
-            <KpiCard
-              title="Total GUS"
-              value={formatNumber(
-                overviewState.data.total_gus,
-              )}
-              description="General service vehicles"
-            />
+              <KpiCard
+                title="PM Conversion"
+                value={`${overviewState.data.pm_conversion_pct.toFixed(
+                  2,
+                )}%`}
+                description="PM / GUS"
+                accent="green"
+              />
 
+              <KpiCard
+                title="VAS Revenue"
+                value={formatCurrency(
+                  overviewState.data.total_vas_revenue,
+                )}
+                description="Value-added service revenue"
+                accent="red"
+              />
 
-            <KpiCard
-              title="Total PM"
-              value={formatNumber(
-                overviewState.data.total_pm,
-              )}
-              description="Preventive maintenance"
-            />
-
-
-            <KpiCard
-              title="PM Conversion"
-              value={`${overviewState.data.pm_conversion_pct.toFixed(2)}%`}
-              description="PM / GUS"
-            />
-
-
-            <KpiCard
-              title="VAS Revenue"
-              value={formatCurrency(
-                overviewState.data.total_vas_revenue,
-              )}
-              description="VAS value"
-            />
-
-
-            <KpiCard
-              title="NPS"
-              value={overviewState.data.nps.toFixed(2)}
-              description={`Sample: ${formatNumber(
-                overviewState.data.nps_sample,
-              )}`}
-            />
-
-          </div>
-
+              <KpiCard
+                title="NPS"
+                value={overviewState.data.nps.toFixed(2)}
+                description={`Sample: ${formatNumber(
+                  overviewState.data.nps_sample,
+                )}`}
+                accent="green"
+              />
+            </div>
+          </section>
 
           {/* ==================================================
               CUSTOMER EXPERIENCE
               ================================================== */}
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(250px, 1fr))",
-              gap: "16px",
-              marginBottom: "24px",
-            }}
-          >
-
-            <KpiCard
-              title="NPS Promoters"
-              value={formatNumber(
-                overviewState.data.nps_promoters,
-              )}
-            />
-
-
-            <KpiCard
-              title="NPS Neutral"
-              value={formatNumber(
-                overviewState.data.nps_neutral,
-              )}
-            />
-
-
-            <KpiCard
-              title="NPS Detractors"
-              value={formatNumber(
-                overviewState.data.nps_detractors,
-              )}
-            />
-
-
-            <KpiCard
-              title="IVOC Responses"
-              value={formatNumber(
-                overviewState.data.ivoc_responses,
-              )}
-              description="VOC response volume"
-            />
-
-          </div>
-
-
-          {/* ==================================================
-              DATA SOURCE INFORMATION
-              ================================================== */}
-
-          <div
+          <section
             style={{
               background: "#ffffff",
               border: "1px solid #e2e8f0",
-              borderRadius: "10px",
-              padding: "18px",
+              borderRadius: "16px",
+              padding: "26px",
+              marginBottom: "28px",
+              boxShadow:
+                "0 5px 18px rgba(15,23,42,0.05)",
             }}
           >
+            <SectionHeader
+              eyebrow="Customer Experience"
+              title="NPS & Voice of Customer"
+              description="Customer sentiment and feedback response indicators."
+            />
 
             <div
               style={{
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#334155",
-                marginBottom: "6px",
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(210px, 1fr))",
+                gap: "16px",
               }}
             >
-              Data source
-            </div>
+              <KpiCard
+                title="NPS Promoters"
+                value={formatNumber(
+                  overviewState.data.nps_promoters,
+                )}
+                accent="green"
+              />
 
+              <KpiCard
+                title="NPS Neutral"
+                value={formatNumber(
+                  overviewState.data.nps_neutral,
+                )}
+                accent="dark"
+              />
+
+              <KpiCard
+                title="NPS Detractors"
+                value={formatNumber(
+                  overviewState.data.nps_detractors,
+                )}
+                accent="red"
+              />
+
+              <KpiCard
+                title="IVOC Responses"
+                value={formatNumber(
+                  overviewState.data.ivoc_responses,
+                )}
+                description="VOC response volume"
+                accent="dark"
+              />
+            </div>
+          </section>
+
+          {/* ==================================================
+              DATA SOURCE
+              ================================================== */}
+
+          <section
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "18px",
+              padding: "22px 24px",
+              borderRadius: "14px",
+              background:
+                "linear-gradient(135deg, #111827, #1f2937)",
+              color: "#ffffff",
+              boxShadow:
+                "0 8px 25px rgba(15,23,42,0.12)",
+            }}
+          >
             <div
               style={{
-                fontSize: "13px",
-                color: "#64748b",
-                lineHeight: 1.6,
+                flexShrink: 0,
+                width: "48px",
+                height: "48px",
+                borderRadius: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#eb0a1e",
+                fontSize: "20px",
+                fontWeight: 900,
               }}
             >
-              These dashboard values are retrieved from the
-              Service Advisor Performance Tracker database
-              through the FastAPI metrics API.
+              T
             </div>
 
-          </div>
+            <div>
+              <div
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 900,
+                  marginBottom: "4px",
+                }}
+              >
+                Toyota Service Analytics
+              </div>
 
+              <div
+                style={{
+                  fontSize: "13px",
+                  color: "#cbd5e1",
+                  lineHeight: 1.6,
+                }}
+              >
+                Dashboard values are retrieved from the
+                Service Advisor Performance Tracker database
+                through the FastAPI metrics API.
+              </div>
+            </div>
+          </section>
         </>
       )}
-
     </div>
   );
 }

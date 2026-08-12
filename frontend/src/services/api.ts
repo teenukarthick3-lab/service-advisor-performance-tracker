@@ -1,6 +1,5 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ??
-  "https://service-advisor-performance-tracker.onrender.com/api";
+  "https://service-advisor-performance-tracker-api.onrender.com/api";
 
 export class ApiError extends Error {
   status: number;
